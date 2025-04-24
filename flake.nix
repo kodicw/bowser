@@ -36,10 +36,11 @@
               rec {
                 name = "pfbrowser";
                 # src = ./.;
-                src = pkgs.fetchFromGithub {
+                src = pkgs.fetchFromGitHub {
                   owner = "kodicw";
                   repo = "bowser";
                   rev = "0e3120530f30affd7ade861d417daddaf2096862";
+                  sha256 = "sha256-oKT18SFq2bysCpivYHhWFjWgGFBAFZ9/lI2aLZHP+As=";
                 };
                 propagatedBuildInputs = [ selenium ];
               };
