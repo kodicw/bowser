@@ -36,10 +36,10 @@
               rec {
                 name = "pfbrowser";
                 # src = ./.;
-                src = fetchGit {
-                  url = "github.com:kodicw/bowser.git";
-                  ref = "3c8b7e15aea1a8427657ae70c3e90cc84694bd63";
-                  
+                src = fetchGithub {
+                  owner = "kodicw";
+                  repo = "bowser";
+                  rev = "aea5bbdc48137717c8658889b6bfe5ad986b5e39";
                 };
                 propagatedBuildInputs = [ selenium ];
               };
