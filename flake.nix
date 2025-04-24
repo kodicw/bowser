@@ -36,7 +36,7 @@
               rec {
                 name = "pfbrowser";
                 # src = ./.;
-                src = fetchGithub {
+                src = pkgs.fetchFromGithub {
                   owner = "kodicw";
                   repo = "bowser";
                   rev = "aea5bbdc48137717c8658889b6bfe5ad986b5e39";
