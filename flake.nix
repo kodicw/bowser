@@ -39,7 +39,7 @@
                 src = pkgs.fetchFromGithub {
                   owner = "kodicw";
                   repo = "bowser";
-                  rev = "aea5bbdc48137717c8658889b6bfe5ad986b5e39";
+                  rev = "0e3120530f30affd7ade861d417daddaf2096862";
                 };
                 propagatedBuildInputs = [ selenium ];
               };
