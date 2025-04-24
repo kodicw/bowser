@@ -38,7 +38,7 @@
                 # src = ./.;
                 src = fetchGit {
                   url = "github.com:kodicw/bowser.git";
-                  rev = "3c8b7e15aea1a8427657ae70c3e90cc84694bd63";
+                  ref = "3c8b7e15aea1a8427657ae70c3e90cc84694bd63";
                   
                 };
                 propagatedBuildInputs = [ selenium ];
