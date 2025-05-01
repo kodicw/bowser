@@ -2,6 +2,8 @@ from bowser.driver import Chrome
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 from typing import Callable
 from bowser.logs import logger
 
@@ -90,6 +92,31 @@ class Website(Chrome):
         else:
             return False
 
+    def wait_for_element(self, identifier: str, item: str, timeout=60):
+        try:
+            match identifier:
+                case "id":
+                    element = WebDriverWait(self.driver, timeout).until(
+                        expected_conditions.presence_of_element_located((By.ID, item))
+                    )
+                    logger.info(f"Element found {element=}")
+                case "xpath":
+                    element = WebDriverWait(self.driver, timeout).until(
+                        expected_conditions.presence_of_element_located(
+                            (By.XPATH, item)
+                        )
+                    )
+                    logger.info(f"Element found {element=}")
+                case "css":
+                    element = WebDriverWait(self.driver, timeout).until(
+                        expected_conditions.presence_of_element_located(
+                            (By.CSS_SELECTOR, item)
+                        )
+                    )
+                    logger.info(f"Element found {element=}")
+        except Exception as e:
+            logger.debug(e)
+
 
 if __name__ == "__main__":
     s = Website("https://automationintesting.com")
@@ -117,4 +144,4 @@ if __name__ == "__main__":
     import time
 
     s.run_all_jobs()
-    time.sleep(5)
+    s.wait_for_element("id", "input")
