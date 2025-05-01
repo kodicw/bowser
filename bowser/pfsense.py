@@ -156,3 +156,47 @@ class Pfsense(Website):
                 self.add_ip_to_alias(ip)
             self.save()
         self.apply()
+
+    def is_package_installed(self, package: str):
+        self.driver.get(self.base_url + "/pkg_mgr_installed.php")
+        self.wait_for_element(
+            "xpath", "//*[@class='table table-striped table-hover table-condensed']"
+        )
+        if self.page_contains(page="", item=package.lower()):
+            logger.info(f"{package=} installed")
+            return True
+        else:
+            logger.info(f"{package=} not installed")
+            return False
+
+    def is_package_available(self, package: str):
+        self.driver.get(self.base_url + "/pkg_mgr.php")
+        self.wait_for_element("xpath", "//*[@title='Click to install']")
+        if self.page_contains(page="", item=f"{package}".lower()):
+            logger.info(f"{package=} is available")
+            return True
+        else:
+            logger.info(f"{package=} not available")
+            return False
+
+    def install_package(self, package):
+        if not self.is_package_installed(package) and self.is_package_available(
+            package
+        ):
+            self.run(
+                Job(
+                    page=f"/pkg_mgr_install.php?pkg=pfSense-pkg-{package}",
+                    actions=[{"id": "pkgconfirm", "method": "click"}],
+                )
+            )
+            self.wait_for_element(
+                "xpath",
+                "//*[@class='progress-bar progress-bar-striped progress-bar-success']",
+            )
+            if (
+                "installation successfully completed."
+                in self.driver.find_element(By.ID, "final").text
+            ):
+                logger.info(f"{package=} installation successfully completed.")
+        else:
+            logger.info(f"{package=} installed or not available")

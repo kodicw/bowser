@@ -83,7 +83,7 @@ class Website(Chrome):
                     action()
 
     def page_contains(self, page: str, item: str, case=False) -> bool:
-        self.driver.get(self.base_url + page)
+        self.driver.get(self.base_url + page) if page != "" else None
         page_source = (
             self.driver.page_source.lower() if case else self.driver.page_source
         )
@@ -99,21 +99,21 @@ class Website(Chrome):
                     element = WebDriverWait(self.driver, timeout).until(
                         expected_conditions.presence_of_element_located((By.ID, item))
                     )
-                    logger.info(f"Element found {element=}")
+                    logger.info(f"Element found {element.tag_name=}")
                 case "xpath":
                     element = WebDriverWait(self.driver, timeout).until(
                         expected_conditions.presence_of_element_located(
                             (By.XPATH, item)
                         )
                     )
-                    logger.info(f"Element found {element=}")
+                    logger.info(f"Element found {element.tag_name=}")
                 case "css":
                     element = WebDriverWait(self.driver, timeout).until(
                         expected_conditions.presence_of_element_located(
                             (By.CSS_SELECTOR, item)
                         )
                     )
-                    logger.info(f"Element found {element=}")
+                    logger.info(f"Element found {element.tag_name=}")
         except Exception as e:
             logger.debug(e)
 
