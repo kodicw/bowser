@@ -55,7 +55,7 @@ class Website(Chrome):
 
     def run(self, job: Job):
         url = self.base_url + job.page
-        if url != self.driver.current_url and job.page != "":
+        if url != self.driver.current_url or job.page != "":
             self.driver.get(url)
         for action in job.actions:
             action = self.load_action(action)
@@ -71,7 +71,7 @@ class Website(Chrome):
     def run_all_jobs(self):
         for job in self.jobs:
             url = self.base_url + job.page
-            if url != self.driver.current_url and job.page != "":
+            if url != self.driver.current_url or job.page != "":
                 self.driver.get(url)
             for action in job.actions:
                 action = self.load_action(action)
@@ -86,7 +86,7 @@ class Website(Chrome):
 
     def page_contains(self, page: str, item: str, case=False) -> bool:
         url = self.base_url + page
-        if url != self.driver.current_url and page != "":
+        if url != self.driver.current_url or page != "":
             self.driver.get(url)
         page_source = (
             self.driver.page_source.lower() if case else self.driver.page_source
