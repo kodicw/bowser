@@ -162,7 +162,7 @@ class Pfsense(Website):
         self.wait_for_element(
             "xpath", "//*[@class='table table-striped table-hover table-condensed']"
         )
-        if self.page_contains(page="", item=package.lower()):
+        if self.page_contains(page="", item=package):
             logger.info(f"{package=} installed")
             return True
         else:
@@ -172,7 +172,7 @@ class Pfsense(Website):
     def is_package_available(self, package: str):
         self.driver.get(self.base_url + "/pkg_mgr.php")
         self.wait_for_element("xpath", "//*[@title='Click to install']")
-        if self.page_contains(page="", item=f"{package}".lower()):
+        if self.page_contains(page="", item=f"{package}"):
             logger.info(f"{package=} is available")
             return True
         else:

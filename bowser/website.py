@@ -20,10 +20,8 @@ class Website(Chrome):
         self.jobs: list[Job] = []
         super().__init__()
 
-    def load_action(
-        self, action: dict
-    ) -> WebElement | None | tuple | Callable[[], None]:
-        """This will return a function or tuple(function, arg) given an action. If all fails it will return None"""
+    def load_action(self, action: dict) -> None | tuple | Callable[[], None]:
+        """This will return a function or tuple(function, argument) given an action. If all fails it will return None"""
         result = None
         for selector in [By.CSS_SELECTOR, By.ID, By.XPATH]:
             if str(selector) in action:
@@ -56,7 +54,9 @@ class Website(Chrome):
             self.jobs.append(job)
 
     def run(self, job: Job):
-        self.driver.get(self.base_url + job.page) if job.page != "" else None
+        url = self.base_url + job.page
+        if url != self.driver.current_url and job.page != "":
+            self.driver.get(url)
         for action in job.actions:
             action = self.load_action(action)
             if action is None:
@@ -87,35 +87,24 @@ class Website(Chrome):
         page_source = (
             self.driver.page_source.lower() if case else self.driver.page_source
         )
+        item = item.lower() if case is False else item
         if item in page_source:
             return True
         else:
             return False
 
     def wait_for_element(self, identifier: str, item: str, timeout=60):
-        try:
-            match identifier:
-                case "id":
-                    element = WebDriverWait(self.driver, timeout).until(
-                        expected_conditions.presence_of_element_located((By.ID, item))
-                    )
-                    logger.info(f"Element found {element.tag_name=}")
-                case "xpath":
+        for selector in [By.CSS_SELECTOR, By.ID, By.XPATH]:
+            if identifier == str(selector):
+                try:
                     element = WebDriverWait(self.driver, timeout).until(
                         expected_conditions.presence_of_element_located(
-                            (By.XPATH, item)
+                            (selector, item)
                         )
                     )
                     logger.info(f"Element found {element.tag_name=}")
-                case "css":
-                    element = WebDriverWait(self.driver, timeout).until(
-                        expected_conditions.presence_of_element_located(
-                            (By.CSS_SELECTOR, item)
-                        )
-                    )
-                    logger.info(f"Element found {element.tag_name=}")
-        except Exception as e:
-            logger.debug(e)
+                except Exception as e:
+                    logger.debug(e)
 
 
 if __name__ == "__main__":
@@ -140,8 +129,6 @@ if __name__ == "__main__":
             ),
         ]
     )
-
-    import time
 
     s.run_all_jobs()
     s.wait_for_element("id", "input")
