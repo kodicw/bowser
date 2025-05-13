@@ -38,6 +38,11 @@ class Website(Chrome):
             case "click":
                 return result.click
             case "send_keys":
+                try:
+                    result.clear()
+                except Exception as e:
+                    logger.error("Unable to clear field")
+
                 return (result.send_keys, action["value"])
             case "select":
                 result = Select(result)
