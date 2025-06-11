@@ -34,11 +34,11 @@ class Pfsense(Website):
             )
         )
 
-    def save(self):
+    def save(self) -> None:
         """Convenience method. This will not work in all cases"""
         self.run(Job(actions=[{"id": "save", "method": "click"}]))
 
-    def apply(self):
+    def apply(self) -> None:
         """Convenience method. This will not work in all cases"""
         self.run(Job(actions=[{"xpath": "//*[@name='apply']", "method": "click"}]))
 
@@ -47,7 +47,7 @@ class Pfsense(Website):
         domains: list[str],
         dns_server: str = "1.1.1.1",
         description: str = "Added by robots",
-    ):
+    ) -> None:
         for domain in domains:
             if self.page_contains("/services_dnsmasq.php", domain):
                 logger.info(f"Domain forwarder already exists {domain}")
@@ -73,7 +73,45 @@ class Pfsense(Website):
             self.save()
             logger.info(f"Added DNS forwarder {domain=}, {dns_server=}, {description=}")
 
-    def add_ip_to_alias(self, ip, description="") -> None:
+    def add_ip_alias(
+        self, name: str, ips: list[str], description: str = "added by robots"
+    ) -> None:
+        if not self.page_contains("/firewall_aliases.php", name):
+            logger.info(f"Alias already exists {name}")
+            self.run(
+                Job(
+                    page="/firewall_aliases_edit.php?tab=ip",
+                    actions=[
+                        {
+                            "id": "name",
+                            "method": "send_keys",
+                            "value": name,
+                        },
+                        {
+                            "id": "descr",
+                            "method": "send_keys",
+                            "value": description,
+                        },
+                    ],
+                )
+            )
+
+            for ip in ips:
+                self.add_ip_to_alias(ip)
+            self.save()
+
+        else:
+            page = self.get_alias_edit_page(name)
+            if page is None:
+                raise ValueError
+
+            self.driver.get(self.base_url + "/" + page)
+            for ip in ips:
+                self.add_ip_to_alias(ip)
+            self.save()
+        self.apply()
+
+    def add_ip_to_alias(self, ip: str, description: str = "") -> None:
         addresses = [
             address.get_attribute("value")
             for address in self.driver.find_elements(
@@ -107,22 +145,14 @@ class Pfsense(Website):
             )
         )
 
-    def get_alias_edit_page(self, name: str) -> str | None:
-        result = self.driver.find_element(By.XPATH, f"//td[contains(.,'{name}')]")
-        result = result.get_attribute("ondblclick")
-
-        if result is not None:
-            return result.split("='")[1].replace("';", "")
-        return None
-
-    def add_ip_alias(
-        self, name: str, ips: list[str], description: str = "added by robots"
-    ):
-        if not self.page_contains("/firewall_aliases.php", name):
+    def add_port_alias(
+        self, name: str, ports: list[str], description: str = "added by robots"
+    ) -> None:
+        if not self.page_contains("/firewall_aliases.php?tab=port", name):
             logger.info(f"Alias already exists {name}")
             self.run(
                 Job(
-                    page="/firewall_aliases_edit.php?tab=ip",
+                    page="/firewall_aliases_edit.php?tab=port",
                     actions=[
                         {
                             "id": "name",
@@ -137,13 +167,9 @@ class Pfsense(Website):
                     ],
                 )
             )
-            page = self.get_alias_edit_page(name)
-            if page is None:
-                raise ValueError
 
-            self.driver.get(self.base_url + "/" + page)
-            for ip in ips:
-                self.add_ip_to_alias(ip)
+            for port in ports:
+                self.add_port_to_alias(port)
             self.save()
 
         else:
@@ -152,10 +178,55 @@ class Pfsense(Website):
                 raise ValueError
 
             self.driver.get(self.base_url + "/" + page)
-            for ip in ips:
-                self.add_ip_to_alias(ip)
+            for port in ports:
+                self.add_ip_to_alias(port)
             self.save()
         self.apply()
+
+    def add_port_to_alias(self, port: str, description: str = "") -> None:
+        ports = [
+            port_.get_attribute("value")
+            for port_ in self.driver.find_elements(
+                By.XPATH, "//input[@class='form-control ui-autocomplete-input']"
+            )
+        ]
+
+        ports_list_size = len(ports)
+        print(ports)
+
+        if port in ports:
+            return
+
+        self.run(
+            Job(
+                actions=[
+                    {
+                        "id": "addrow",
+                        "method": "click",
+                    },
+                    {
+                        "id": f"address{ports_list_size}",
+                        "method": "send_keys",
+                        "value": port,
+                    },
+                    {
+                        "id": f"detail{ports_list_size}",
+                        "method": "send_keys",
+                        "value": description,
+                    },
+                ],
+            )
+        )
+
+    def get_alias_edit_page(self, name: str) -> str | None:
+        try:
+            result = self.driver.find_element(By.XPATH, f"//td[contains(.,'{name}')]")
+            result = result.get_attribute("ondblclick")
+
+            if result is not None:
+                return result.split("='")[1].replace("';", "")
+        except:
+            return None
 
     def is_package_installed(self, package: str):
         self.driver.get(self.base_url + "/pkg_mgr_installed.php")
@@ -169,7 +240,7 @@ class Pfsense(Website):
             logger.info(f"{package=} not installed")
             return False
 
-    def is_package_available(self, package: str):
+    def is_package_available(self, package: str) -> bool:
         self.driver.get(self.base_url + "/pkg_mgr.php")
         self.wait_for_element("xpath", "//*[@title='Click to install']")
         if self.page_contains(page="", item=f"{package}"):
@@ -179,7 +250,7 @@ class Pfsense(Website):
             logger.info(f"{package=} not available")
             return False
 
-    def install_package(self, package):
+    def install_package(self, package: str) -> None:
         if not self.is_package_installed(package) and self.is_package_available(
             package
         ):

@@ -60,7 +60,7 @@ class Website(Chrome):
 
     def run(self, job: Job):
         url = self.base_url + job.page
-        if url != self.driver.current_url or job.page != "":
+        if url != self.driver.current_url and job.page != "":
             self.driver.get(url)
         for action in job.actions:
             action = self.load_action(action)
@@ -89,14 +89,16 @@ class Website(Chrome):
                 elif hasattr(action, "__call__"):
                     action()
 
-    def page_contains(self, page: str, item: str, case=False) -> bool:
+    def page_contains(self, page: str, item: str, case_sensitive=False) -> bool:
         url = self.base_url + page
-        if url != self.driver.current_url or page != "":
+        if url != self.driver.current_url and page != "":
             self.driver.get(url)
         page_source = (
-            self.driver.page_source.lower() if case else self.driver.page_source
+            self.driver.page_source.lower()
+            if case_sensitive
+            else self.driver.page_source
         )
-        item = item.lower() if case is False else item
+        item = item.lower() if case_sensitive else item
         if item in page_source:
             return True
         else:
