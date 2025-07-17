@@ -49,6 +49,7 @@ class Pfsense(Website):
         description: str = "Added by robots",
     ) -> None:
         for domain in domains:
+            assert len(domain) < 100
             if self.page_contains("/services_dnsmasq.php", domain):
                 logger.info(f"Domain forwarder already exists {domain}")
                 continue
