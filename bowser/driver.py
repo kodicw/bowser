@@ -1,7 +1,11 @@
 from selenium import webdriver
 from platform import freedesktop_os_release as os_release
 
-system_os = os_release()["ID"].lower() if "ID" in os_release() else None
+system_os = ""
+try:
+    system_os = os_release()["ID"].lower() if "ID" in os_release() else None
+except Exception as e:
+    print(str(e))
 
 
 class Chrome:
