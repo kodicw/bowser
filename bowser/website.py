@@ -15,10 +15,10 @@ class Job:
 
 
 class Website(Chrome):
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, headless: bool = False, proxy: str | None = None):
         self.base_url: str = base_url
         self.jobs: list[Job] = []
-        super().__init__()
+        super().__init__(headless=headless, proxy=proxy)
 
     def load_action(self, action: dict) -> None | tuple | Callable[[], None]:
         """This will return a function or tuple(function, argument) given an action. If all fails it will return None"""

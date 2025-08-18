@@ -4,11 +4,13 @@ from bowser.logs import logger
 
 
 class Pfsense(Website):
-    def __init__(self, host: str, port: int, username: str, password: str):
+    def __init__(
+        self, host: str, port: int, username: str, password: str, headless: bool = False
+    ):
         self.username = username
         self.password = password
         self.base_url = f"https://{host}:{port}"
-        super().__init__(self.base_url)
+        super().__init__(self.base_url, headless=headless)
 
     def login(self) -> None:
         """This will login using self.username and self.password. Do not use this if you are already logged in"""
